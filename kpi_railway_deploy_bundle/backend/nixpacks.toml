@@ -1,0 +1,5 @@
+[variables]
+PYTHON_VERSION = "3.12"
+
+[phases.install]
+cmds = ["python -m pip install --upgrade pip", "pip install -r requirements.txt"]
