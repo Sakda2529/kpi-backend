@@ -1,11 +1,26 @@
-# เพิ่ม import ด้านบน
+from fastapi import FastAPI, Depends, HTTPException, Header
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from jose import JWTError
+
+from database import get_db
 from auth import verify_password, create_token, decode_token, hash_password
 
-# เพิ่มก่อน @app.get("/")
+# ✅ สร้าง app ก่อน
+app = FastAPI(title="KPI Backend API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ✅ แล้วค่อยใช้ @app ได้
 @app.on_event("startup")
 def startup():
     db = get_db()
-    # สร้างตารางถ้ายังไม่มี
     db.executescript("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,9 +52,10 @@ def startup():
             completion_rate REAL
         );
     """)
-    # seed admin ถ้ายังไม่มี
-    db.execute("""
-        INSERT OR IGNORE INTO users (username, password_hash, role)
-        VALUES ('admin', ?, 'admin')
-    """, (hash_password("1234"),))
+    db.execute(
+        "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES ('admin', ?, 'admin')",
+        (hash_password("1234"),)
+    )
     db.commit()
+
+# ... routes ที่เหลือตามเดิม
